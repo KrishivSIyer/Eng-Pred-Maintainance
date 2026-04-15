@@ -9,10 +9,10 @@ print("PART 3: MODEL BUILDING - STEP 1")
 print("="*60)
 
 # Load the data we saved in Part 2
-X_train = pd.read_csv('C:/Users/krish\OneDrive/Desktop/sem2 projects/aiml/fig/X_train.csv')
-X_test = pd.read_csv('C:/Users/krish\OneDrive/Desktop/sem2 projects/aiml/fig/X_test.csv')
-y_train = pd.read_csv('C:/Users/krish\OneDrive/Desktop/sem2 projects/aiml/fig/y_train.csv')
-y_test = pd.read_csv('C:/Users/krish\OneDrive/Desktop/sem2 projects/aiml/fig/y_test.csv')
+X_train = pd.read_csv('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/X_train.csv')
+X_test = pd.read_csv('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/X_test.csv')
+y_train = pd.read_csv('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/y_train.csv')
+y_test = pd.read_csv('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/y_test.csv')
 
 # Load the scaler
 scaler = joblib.load('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/scaler.pkl')
