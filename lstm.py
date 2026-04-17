@@ -15,7 +15,7 @@ print("="*60)
 # ============================================
 # STEP 1: Load the preprocessed data
 # ============================================
-print("\n📂 Loading data...")
+print("\n Loading data...")
 
 X_train = pd.read_csv('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/X_train.csv')
 X_test = pd.read_csv('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/X_test.csv')
@@ -30,7 +30,7 @@ print(f"y_test shape: {y_test.shape}")
 # ============================================
 # STEP 2: Create sequences for LSTM
 # ============================================
-print("\n📊 Creating sequences for LSTM...")
+print("\n Creating sequences for LSTM...")
 
 def create_sequences(X, y, seq_length=50):
     """
@@ -64,7 +64,7 @@ print(f"y_test_seq shape: {y_test_seq.shape}")
 # ============================================
 # STEP 3: Build LSTM Model
 # ============================================
-print("\n🏗️ Building LSTM model...")
+print("\n Building LSTM model...")
 
 model = Sequential([
     # First LSTM layer
@@ -91,7 +91,7 @@ model.summary()
 # ============================================
 # STEP 4: Train the model
 # ============================================
-print("\n🌳 Training LSTM...")
+print("\n Training LSTM...")
 print("   (This might take 2-5 minutes)")
 
 early_stop = EarlyStopping(
@@ -121,29 +121,29 @@ y_pred_lstm = model.predict(X_test_seq)
 mae_lstm = mean_absolute_error(y_test_seq, y_pred_lstm)
 rmse_lstm = np.sqrt(mean_squared_error(y_test_seq, y_pred_lstm))
 
-print("\n📊 LSTM RESULTS:")
+print("\n LSTM RESULTS:")
 print(f"Mean Absolute Error (MAE): {mae_lstm:.2f} cycles")
 print(f"Root Mean Square Error (RMSE): {rmse_lstm:.2f} cycles")
 
 # ============================================
 # STEP 7: Compare with Random Forest
 # ============================================
-print("\n📊 COMPARISON:")
+print("\n COMPARISON:")
 print(f"Random Forest MAE: 29.70 cycles")
 print(f"LSTM MAE: {mae_lstm:.2f} cycles")
 
 if mae_lstm < randomforest.mae_rf:
     improvement = randomforest.mae_rf - mae_lstm
-    print(f"✅ LSTM is better by {improvement:.2f} cycles!")
+    print(f" LSTM is better by {improvement:.2f} cycles!")
 else:
     worse = mae_lstm - randomforest.mae_rf
-    print(f"⚠️ Random Forest is better by {worse:.2f} cycles")
+    print(f" Random Forest is better by {worse:.2f} cycles")
 
 # ============================================
 # STEP 8: Save the model
 # ============================================
 model.save('lstm_model.h5')
-print("\n✅ Model saved as 'lstm_model.h5'")
+print("\n Model saved as 'lstm_model.h5'")
 
 # ============================================
 # STEP 9: Plot training history
@@ -172,4 +172,4 @@ plt.tight_layout()
 plt.savefig('lstm_results.png')
 plt.show()
 
-print("\n✅ Plot saved as 'lstm_results.png'")
+print("\n Plot saved as 'lstm_results.png'")
