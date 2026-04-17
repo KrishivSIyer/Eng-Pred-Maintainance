@@ -18,7 +18,7 @@ y_test = pd.read_csv('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/y_t
 scaler = joblib.load('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/scaler.pkl')
 
 # Quick verification
-print("\n✅ Data loaded successfully!")
+print("\n Data loaded successfully!")
 print(f"X_train shape: {X_train.shape}")
 print(f"X_test shape: {X_test.shape}")
 print(f"y_train shape: {y_train.shape}")
@@ -45,9 +45,9 @@ rf_model = RandomForestRegressor(
 rf_model.fit(X_train, y_train.values.ravel())  # .ravel() flattens y to 1D array
 joblib.dump(rf_model, 'rf_model.pkl')  # ← HERE!
 
-print("✅ Model saved as 'rf_model.pkl'")
+print(" Model saved as 'rf_model.pkl'")
 
-print("✅ Training complete!")
+print(" Training complete!")
 
 # Make predictions on test data
 y_pred_rf = rf_model.predict(X_test)
@@ -56,9 +56,9 @@ y_pred_rf = rf_model.predict(X_test)
 mae_rf = mean_absolute_error(y_test, y_pred_rf)
 rmse_rf = np.sqrt(mean_squared_error(y_test, y_pred_rf))
 
-print("\n📊 RESULTS:")
+print("\n RESULTS:")
 print(f"Mean Absolute Error (MAE): {mae_rf:.2f} cycles")
 print(f"Root Mean Square Error (RMSE): {rmse_rf:.2f} cycles")
 
-print("\n💡 INTERPRETATION:")
+print("\n INTERPRETATION:")
 print(f"On average, Random Forest is off by {mae_rf:.1f} cycles")
