@@ -27,7 +27,7 @@ column_names = [
 ]
 
 # Step 2: Load the data with proper error handling
-print("\n📂 Loading training data...")
+print("\nLoading training data...")
 data_path = input("Enter the folder path where your FD001 files are: ").strip()
 
 try:
@@ -41,7 +41,7 @@ try:
     initial_rows = len(train_data)
     train_data = train_data.drop_duplicates()
     
-    print(f"✅ Loaded successfully!")
+    print(f" Loaded successfully!")
     print(f"   Raw rows: {initial_rows}")
     print(f"   After removing duplicates: {len(train_data)} rows")
     print(f"   Columns: {train_data.shape[1]}")
@@ -57,7 +57,7 @@ except Exception as e:
 
 # Step 3: Data Validation - Check if data is loaded correctly
 print("\n" + "="*60)
-print("🔍 DATA VALIDATION")
+print("DATA VALIDATION")
 print("="*60)
 
 # Check each engine's data integrity
@@ -71,18 +71,18 @@ for engine in train_data['unit_number'].unique():
     expected_cycles = np.arange(1, len(cycles) + 1)
     if not np.array_equal(cycles, expected_cycles):
         problem_engines.append(engine)
-        print(f"  ❌ Engine {engine}: Cycle sequence broken")
+        print(f"Engine {engine}: Cycle sequence broken")
     else:
-        print(f"  ✅ Engine {engine}: {len(cycles)} cycles, sequential OK")
+        print(f"Engine {engine}: {len(cycles)} cycles, sequential OK")
 
 if problem_engines:
-    print(f"\n⚠️  Warning: {len(problem_engines)} engines have cycle sequence issues")
+    print(f"\n Warning: {len(problem_engines)} engines have cycle sequence issues")
 else:
-    print("\n✅ All engines have correct sequential cycles!")
+    print("\nAll engines have correct sequential cycles!")
 
 # Step 4: Basic statistics
 print("\n" + "="*60)
-print("📊 BASIC STATISTICS")
+print("BASIC STATISTICS")
 print("="*60)
 
 print("\nEngine lifetimes (cycles until failure):")
@@ -94,7 +94,7 @@ print(f"  Median: {engine_lifetimes.median():.0f} cycles")
 
 # Step 5: Calculate RUL CORRECTLY
 print("\n" + "="*60)
-print("⏱️  CALCULATING REMAINING USEFUL LIFE (RUL)")
+print("CALCULATING REMAINING USEFUL LIFE (RUL)")
 print("="*60)
 
 # For each engine, find its maximum cycle (failure point)
@@ -112,14 +112,14 @@ train_data_with_rul = train_data_with_rul.drop('max_cycle', axis=1)
 
 # FIX 6: Verify RUL calculation for Engine 1
 engine_1 = train_data_with_rul[train_data_with_rul['unit_number'] == 1].copy()
-print("\n✅ RUL Verification for Engine 1:")
+print("\nRUL Verification for Engine 1:")
 print(f"   Total cycles: {engine_1['time_in_cycles'].max()}")
 print(f"   RUL at cycle 1: {engine_1['RUL'].iloc[0]} (should be {engine_1['time_in_cycles'].max()-1})")
 print(f"   RUL at last cycle: {engine_1['RUL'].iloc[-1]} (should be 0)")
 
 # Step 6: Display clean sample
 print("\n" + "="*60)
-print("📋 CLEAN DATA SAMPLE")
+print("CLEAN DATA SAMPLE")
 print("="*60)
 
 print("\nFirst 10 rows for Engine 1:")
@@ -130,7 +130,7 @@ print(f"Global RUL range: {train_data_with_rul['RUL'].min()} to {train_data_with
 
 # Step 7: Visualize one engine correctly
 print("\n" + "="*60)
-print("🎨 CREATING VISUALIZATIONS")
+print("CREATING VISUALIZATIONS")
 print("="*60)
 
 # Pick a random engine
@@ -167,7 +167,7 @@ plt.savefig('engine_exploration.png')
 plt.show()
 
 # Step 8: Visualize RUL distribution
-print("\n📊 Creating RUL visualization...")
+print("\nCreating RUL visualization...")
 
 plt.figure(figsize=(10, 4))
 
@@ -194,7 +194,7 @@ plt.show()
 
 # Step 9: Final data quality report
 print("\n" + "="*60)
-print("📈 FINAL DATA QUALITY REPORT")
+print("FINAL DATA QUALITY REPORT")
 print("="*60)
 
 print(f"\nDataset shape: {train_data_with_rul.shape}")
@@ -205,15 +205,15 @@ print(f"Duplicate rows: {train_data_with_rul.duplicated().sum()}")
 
 # Step 10: Save processed data
 print("\n" + "="*60)
-print("💾 SAVING PROCESSED DATA")
+print("SAVING PROCESSED DATA")
 print("="*60)
 
 train_data_with_rul.to_csv('engine_data_with_rul.csv', index=False)
-print("✅ Saved as 'engine_data_with_rul.csv'")
+print("Saved as 'engine_data_with_rul.csv'")
 print(f"   File size: {os.path.getsize('engine_data_with_rul.csv') / 1024:.1f} KB")
 
 print("\n" + "="*60)
-print("🎉 PART 1 COMPLETE - DATA IS CLEAN!")
+print("PART 1 COMPLETE - DATA IS CLEAN!")
 print("="*60)
 print("\nWhat we accomplished:")
 print("✓ Loaded NASA C-MAPSS dataset correctly")
@@ -222,4 +222,4 @@ print("✓ Verified data integrity for all engines")
 print("✓ Calculated RUL correctly")
 print("✓ Created clean visualizations")
 print("✓ Saved processed data for next steps")
-print("\n✅ Your data is now ready for Part 2 - Preprocessing!")
+print("\n Your data is now ready for Part 2 - Preprocessing!")
