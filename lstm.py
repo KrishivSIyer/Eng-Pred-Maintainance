@@ -1,8 +1,4 @@
-"""
-LSTM Model for Aircraft Engine RUL Prediction
-Based on NASA C-MAPSS dataset
-"""
-
+import randomforest
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -136,11 +132,11 @@ print("\n📊 COMPARISON:")
 print(f"Random Forest MAE: 29.70 cycles")
 print(f"LSTM MAE: {mae_lstm:.2f} cycles")
 
-if mae_lstm < 29.70:
-    improvement = 29.70 - mae_lstm
+if mae_lstm < randomforest.mae_rf:
+    improvement = randomforest.mae_rf - mae_lstm
     print(f"✅ LSTM is better by {improvement:.2f} cycles!")
 else:
-    worse = mae_lstm - 29.70
+    worse = mae_lstm - randomforest.mae_rf
     print(f"⚠️ Random Forest is better by {worse:.2f} cycles")
 
 # ============================================
