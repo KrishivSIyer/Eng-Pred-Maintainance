@@ -26,7 +26,7 @@ print(f"y_test shape: {y_test.shape}")
 print(f"Scaler type: {type(scaler)}")
 
 # Look at first few rows
-print("\n📋 First 2 rows of training data:")
+print("\n First 2 rows of training data:")
 print(X_train.head(2))
 
 # Random forest
