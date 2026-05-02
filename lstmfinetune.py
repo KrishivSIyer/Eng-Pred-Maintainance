@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model, clone_model
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 
@@ -48,7 +48,7 @@ def create_test_sequences(X, seq_length=SEQ_LENGTH):
         padding = np.tile(X[0], (seq_length - len(X), 1))
         return np.array([np.vstack([padding, X])])
 
-def load_and_prepare_data(dataset_name, is_training=True):
+def load_and_prepare_data(dataset_name, is_training=True, scaler=None):
     """Load raw data, calculate RUL, scale features"""
     
     if is_training:
@@ -72,8 +72,22 @@ def load_and_prepare_data(dataset_name, is_training=True):
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
         
-        # Create sequences
-        X_seq, y_seq = create_sequences(X_scaled, y, SEQ_LENGTH)
+        # Create sequences grouped by engine
+        X_seq, y_seq = [], []
+        engines = df['unit_number'].unique()
+        
+        for engine_id in engines:
+            engine_idx = df['unit_number'] == engine_id
+            X_engine = X_scaled[engine_idx]
+            y_engine = y[engine_idx].values
+            
+            if len(X_engine) > SEQ_LENGTH:
+                for i in range(len(X_engine) - SEQ_LENGTH):
+                    X_seq.append(X_engine[i:i+SEQ_LENGTH])
+                    y_seq.append(y_engine[i+SEQ_LENGTH])
+                    
+        X_seq = np.array(X_seq)
+        y_seq = np.array(y_seq)
         
         # Split into train/validation (80/20)
         split_idx = int(len(X_seq) * 0.8)
@@ -107,6 +121,9 @@ def load_and_prepare_data(dataset_name, is_training=True):
         for engine_id in engines:
             engine_data = df[df['unit_number'] == engine_id]
             engine_features = engine_data[features].values
+            
+            if scaler is not None:
+                engine_features = scaler.transform(engine_features)
             
             # Get last SEQ_LENGTH cycles
             if len(engine_features) >= SEQ_LENGTH:
@@ -167,7 +184,7 @@ for dataset in ['FD002', 'FD003', 'FD004']:
     X_train_seq, X_val_seq, y_train_seq, y_val_seq, scaler = load_and_prepare_data(dataset, is_training=True)
     
     # Load test data
-    X_test_seq, y_test = load_and_prepare_data(dataset, is_training=False)
+    X_test_seq, y_test = load_and_prepare_data(dataset, is_training=False, scaler=scaler)
     
     # Clone base model
     fine_tuned_model = clone_model(base_model)
@@ -176,17 +193,18 @@ for dataset in ['FD002', 'FD003', 'FD004']:
     # Recompile with lower learning rate
     fine_tuned_model.compile(optimizer=Adam(learning_rate=0.0001), loss='mse', metrics=['mae'])
     
-    # Early stopping
-    early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    # Callbacks for better fine-tuning
+    early_stop = EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=1e-6, verbose=1)
     
     print(f"Fine-tuning on {dataset}...")
     history = fine_tuned_model.fit(
         X_train_seq, y_train_seq,
-        epochs=30,
+        epochs=50,
         batch_size=32,
         validation_data=(X_val_seq, y_val_seq),
-        callbacks=[early_stop],
-        verbose=0
+        callbacks=[early_stop, reduce_lr],
+        verbose=1
     )
     
     # Evaluate

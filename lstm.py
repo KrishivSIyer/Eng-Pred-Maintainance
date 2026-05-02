@@ -1,10 +1,10 @@
-import randomforest
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import matplotlib.pyplot as plt
 
@@ -15,51 +15,57 @@ print("="*60)
 # ============================================
 # STEP 1: Load the preprocessed data
 # ============================================
-print("\n Loading data...")
+print("\n Loading FD001 data...")
 
-X_train = pd.read_csv('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/X_train.csv')
-X_test = pd.read_csv('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/X_test.csv')
-y_train = pd.read_csv('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/y_train.csv')
-y_test = pd.read_csv('C:/Users/krish/OneDrive/Desktop/sem2 projects/aiml/fig/y_test.csv')
+# Column names for raw data
+column_names = [
+    'unit_number', 'time_in_cycles', 'setting_1', 'setting_2', 'setting_3',
+    'sensor_1', 'sensor_2', 'sensor_3', 'sensor_4', 'sensor_5',
+    'sensor_6', 'sensor_7', 'sensor_8', 'sensor_9', 'sensor_10',
+    'sensor_11', 'sensor_12', 'sensor_13', 'sensor_14', 'sensor_15',
+    'sensor_16', 'sensor_17', 'sensor_18', 'sensor_19', 'sensor_20',
+    'sensor_21'
+]
+features = ['setting_1', 'setting_2', 'setting_3'] + [f'sensor_{i}' for i in range(1, 22)]
 
-print(f"X_train shape: {X_train.shape}")
-print(f"X_test shape: {X_test.shape}")
-print(f"y_train shape: {y_train.shape}")
-print(f"y_test shape: {y_test.shape}")
+train_df = pd.read_csv('data/raw/train_FD001.txt', sep=r'\s+', names=column_names, engine='python')
+max_cycles = train_df.groupby('unit_number')['time_in_cycles'].max().reset_index()
+max_cycles.columns = ['unit_number', 'max_cycle']
+train_df = train_df.merge(max_cycles, on='unit_number', how='left')
+train_df['RUL'] = train_df['max_cycle'] - train_df['time_in_cycles']
 
-# ============================================
-# STEP 2: Create sequences for LSTM
-# ============================================
-print("\n Creating sequences for LSTM...")
+X_train = train_df[features].values
+y_train = train_df['RUL'].values
 
-def create_sequences(X, y, seq_length=50):
-    """
-    Convert data into sequences for LSTM
-    
-    Example:
-    Input: 100 cycles of data
-    Output: 51 sequences (each of length 50)
-    Sequence 1: cycles 0-49 → predict cycle 50
-    Sequence 2: cycles 1-50 → predict cycle 51
-    etc.
-    """
-    X_seq, y_seq = [], []
-    
-    for i in range(len(X) - seq_length):
-        X_seq.append(X.iloc[i:i+seq_length].values)
-        y_seq.append(y.iloc[i+seq_length].values[0])
-    
-    return np.array(X_seq), np.array(y_seq)
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+train_df_scaled = pd.DataFrame(X_train_scaled, columns=features)
+train_df_scaled['unit_number'] = train_df['unit_number'].values
 
-# Create sequences
 seq_length = 50
-X_train_seq, y_train_seq = create_sequences(X_train, y_train, seq_length)
-X_test_seq, y_test_seq = create_sequences(X_test, y_test, seq_length)
+X_seq, y_seq = [], []
+for engine_id in train_df_scaled['unit_number'].unique():
+    engine_idx = train_df_scaled['unit_number'] == engine_id
+    X_engine = X_train_scaled[engine_idx]
+    y_engine = y_train[engine_idx]
+    
+    if len(X_engine) > seq_length:
+        for i in range(len(X_engine) - seq_length):
+            X_seq.append(X_engine[i:i+seq_length])
+            y_seq.append(y_engine[i+seq_length])
 
-print(f"X_train_seq shape: {X_train_seq.shape}")  # (samples, 50, 24)
+X_seq = np.array(X_seq)
+y_seq = np.array(y_seq)
+
+split_idx = int(len(X_seq) * 0.8)
+X_train_seq = X_seq[:split_idx]
+X_test_seq = X_seq[split_idx:]
+y_train_seq = y_seq[:split_idx]
+y_test_seq = y_seq[split_idx:]
+
+print(f"X_train_seq shape: {X_train_seq.shape}")
 print(f"X_test_seq shape: {X_test_seq.shape}")
-print(f"y_train_seq shape: {y_train_seq.shape}")
-print(f"y_test_seq shape: {y_test_seq.shape}")
 
 # ============================================
 # STEP 3: Build LSTM Model
@@ -96,16 +102,24 @@ print("   (This might take 2-5 minutes)")
 
 early_stop = EarlyStopping(
     monitor='val_loss',
-    patience=10,
+    patience=15,
     restore_best_weights=True
+)
+
+reduce_lr = ReduceLROnPlateau(
+    monitor='val_loss', 
+    factor=0.5, 
+    patience=5, 
+    min_lr=1e-6, 
+    verbose=1
 )
 
 history = model.fit(
     X_train_seq, y_train_seq,
-    epochs=50,
+    epochs=100,
     batch_size=32,
     validation_split=0.2,
-    callbacks=[early_stop],
+    callbacks=[early_stop, reduce_lr],
     verbose=1
 )
 
@@ -126,18 +140,8 @@ print(f"Mean Absolute Error (MAE): {mae_lstm:.2f} cycles")
 print(f"Root Mean Square Error (RMSE): {rmse_lstm:.2f} cycles")
 
 # ============================================
-# STEP 7: Compare with Random Forest
+# STEP 7: Save the model
 # ============================================
-print("\n COMPARISON:")
-print(f"Random Forest MAE: 29.70 cycles")
-print(f"LSTM MAE: {mae_lstm:.2f} cycles")
-
-if mae_lstm < randomforest.mae_rf:
-    improvement = randomforest.mae_rf - mae_lstm
-    print(f" LSTM is better by {improvement:.2f} cycles!")
-else:
-    worse = mae_lstm - randomforest.mae_rf
-    print(f" Random Forest is better by {worse:.2f} cycles")
 
 # ============================================
 # STEP 8: Save the model
