@@ -137,7 +137,7 @@ if mae_lstm < randomforest.mae_rf:
     print(f" LSTM is better by {improvement:.2f} cycles!")
 else:
     worse = mae_lstm - randomforest.mae_rf
-    print(f"⚠️ Random Forest is better by {worse:.2f} cycles")
+    print(f" Random Forest is better by {worse:.2f} cycles")
 
 # ============================================
 # STEP 8: Save the model

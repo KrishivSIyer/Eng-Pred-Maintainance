@@ -76,7 +76,7 @@ Y_test.to_csv('y_test.csv', index=False)
 
 joblib.dump(scaler, 'scaler.pkl')
 
-print("✅ All files saved!")
+print(" All files saved!")
 print("   - X_train.csv, X_test.csv")
 print("   - y_train.csv, y_test.csv")
 print("   - scaler.pkl (for scaling new data later)")

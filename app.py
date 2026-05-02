@@ -17,7 +17,6 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
-
 # Base path for resources
 BASE_DIR = os.path.dirname(os.path.abspath(__name__))
 MODELS_DIR = os.path.join(BASE_DIR, 'models')
