@@ -140,6 +140,8 @@ def predict_rul():
         
         # LSTM Inference (Sequence)
         eng_features = engine_data[features].values
+        eng_features = scaler.transform(eng_features)
+        
         if len(eng_features) >= SEQ:
             seq = eng_features[-SEQ:]
         else:
