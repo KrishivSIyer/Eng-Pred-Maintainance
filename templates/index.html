@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictive Maintenance Dashboard | Engine RUL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="glow-bg"></div>
+    
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon"></div>
+            <h2>AeroPredict</h2>
+        </div>
+        <nav>
+            <button class="nav-item active" data-target="overview">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                Overview
+            </button>
+            <button class="nav-item" data-target="live-prediction">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                Live Prediction
+            </button>
+        </nav>
+        
+        <div class="sidebar-info">
+            <p class="model-status">
+                <span class="status-dot"></span>
+                Models Loaded
+            </p>
+            <p class="subtitle">RF & LSTM Ready</p>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <header>
+            <h1>Engine RUL Analytics</h1>
+            <p class="subtitle">Comparing Random Forest vs LSTM on FD001-FD004 Datasets</p>
+        </header>
+
+        <!-- Overview Section -->
+        <section id="overview" class="view-section active">
+            <div class="metrics-grid" id="metrics-container">
+                <!-- Metrics cards injected by JS -->
+                <div class="loader-container"><div class="spinner"></div></div>
+            </div>
+
+            <div class="chart-container glass-panel">
+                <div class="panel-header">
+                    <h3>Performance Comparison (MAE)</h3>
+                    <p>Lower is better. Random Forest consistently outperforms LSTM.</p>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="maeChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Prediction Section -->
+        <section id="live-prediction" class="view-section">
+            <div class="control-panel glass-panel">
+                <div class="panel-header">
+                    <h3>Run Inference</h3>
+                    <p>Select a dataset and simulate live prediction on a random test engine.</p>
+                </div>
+                
+                <div class="controls">
+                    <div class="input-group">
+                        <label for="dataset-select">Dataset</label>
+                        <select id="dataset-select">
+                            <option value="FD001">FD001 (Simple)</option>
+                            <option value="FD002">FD002 (Complex)</option>
+                            <option value="FD003">FD003 (Complex)</option>
+                            <option value="FD004">FD004 (Highly Complex)</option>
+                        </select>
+                    </div>
+                    
+                    <button id="predict-btn" class="primary-btn">
+                        <span class="btn-text">Predict RUL</span>
+                        <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="prediction-results" class="prediction-results hidden">
+                <div class="results-header glass-panel">
+                    <h3>Engine #<span id="res-engine-id">--</span> Analysis</h3>
+                    <p>Cycles Analyzed: <span id="res-cycles">--</span></p>
+                </div>
+                
+                <div class="prediction-cards">
+                    <div class="pred-card glass-panel highlight-truth">
+                        <div class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+                        <h4>Actual RUL</h4>
+                        <div class="value" id="val-actual">--</div>
+                        <div class="label">Cycles Remaining</div>
+                    </div>
+                    
+                    <div class="pred-card glass-panel highlight-rf">
+                        <div class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg></div>
+                        <h4>Random Forest</h4>
+                        <div class="value" id="val-rf">--</div>
+                        <div class="error-badge" id="err-rf">--</div>
+                    </div>
+                    
+                    <div class="pred-card glass-panel highlight-lstm">
+                        <div class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
+                        <h4>LSTM</h4>
+                        <div class="value" id="val-lstm">--</div>
+                        <div class="error-badge" id="err-lstm">--</div>
+                    </div>
+                </div>
+
+                <div class="chart-container glass-panel">
+                    <div class="panel-header">
+                        <h3>Prediction Visualization</h3>
+                        <p>Distance from ground truth</p>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="predictionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
