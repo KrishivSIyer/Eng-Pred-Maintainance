@@ -22,7 +22,7 @@ document.querySelectorAll('.nav-item').forEach(button => {
 // Load Overview Data
 async function loadOverviewData() {
     try {
-        const response = await fetch('/api/results');
+        const response = await fetch('http://127.0.0.1:5000/api/results');
         const result = await response.json();
         
         if (result.success) {
@@ -146,7 +146,7 @@ document.getElementById('predict-btn').addEventListener('click', async (e) => {
     btn.querySelector('.btn-text').innerText = 'Running Inference...';
     
     try {
-        const response = await fetch('/api/predict', {
+        const response = await fetch('http://127.0.0.1:5000/api/predict', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ dataset: ds })

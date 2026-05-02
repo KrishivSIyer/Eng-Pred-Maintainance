@@ -11,6 +11,13 @@ tf.get_logger().setLevel('ERROR')
 
 app = Flask(__name__)
 
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
 # Base path for resources
 BASE_DIR = os.path.dirname(os.path.abspath(__name__))
 MODELS_DIR = os.path.join(BASE_DIR, 'models')
@@ -30,6 +37,8 @@ def get_rf_model(dataset):
         if not os.path.exists(model_path):
             # Fallback for RF model naming issue seen in eval.py
             model_path = os.path.join(MODELS_DIR, f'rf_{dataset}.pkl')
+        if not os.path.exists(model_path) and dataset == 'FD001':
+            model_path = os.path.join(MODELS_DIR, 'rf_model.pkl')
         model_cache[key] = joblib.load(model_path)
     return model_cache[key]
 
